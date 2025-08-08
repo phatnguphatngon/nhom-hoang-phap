@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng Nhập</title>
+    <title>Đăng Nhập - Nhóm Hoằng Pháp</title>
     <!-- Sử dụng Tailwind CSS để làm đẹp giao diện -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,31 +13,57 @@
         body {
             font-family: 'Inter', sans-serif;
         }
+        /* Tùy chỉnh màu sắc cho theme nâu đỏ */
+        .theme-button {
+            background-color: #92400e; /* amber-800 */
+        }
+        .theme-button:hover {
+            background-color: #78350f; /* amber-900 */
+        }
+        .theme-focus-ring:focus {
+            --tw-ring-color: #b45309; /* amber-700 */
+        }
     </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center h-screen">
-    <div class="w-full max-w-md bg-white rounded-lg shadow-md p-8">
-        <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Đăng Nhập</h2>
+<body class="bg-amber-50 flex flex-col items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-sm mx-auto">
+        <!-- Logo và Tiêu đề -->
+        <div class="flex flex-col items-center justify-center mb-8">
+            <!-- Thay thế SVG bằng thẻ img cho logo.png -->
+            <img src="logo.png" alt="Logo Nhóm Hoằng Pháp" class="w-24 h-24 rounded-full shadow-lg mb-4 object-cover border-4 border-white">
+            
+            <h1 class="text-3xl font-bold text-amber-900">Nhóm Hoằng Pháp</h1>
+            <p class="text-gray-600 mt-1">Vui lòng đăng nhập để tiếp tục</p>
+        </div>
+
         <!-- Form đăng nhập -->
-        <form id="loginForm">
-            <div class="mb-4">
-                <label for="email" class="block text-gray-700 text-sm font-bold mb-2">Email</label>
-                <input type="email" id="email" name="email" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" required placeholder="nhap@email.com">
-            </div>
-            <div class="mb-6">
-                <label for="password" class="block text-gray-700 text-sm font-bold mb-2">Mật khẩu</label>
-                <input type="password" id="password" name="password" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" required placeholder="••••••••••">
-            </div>
-            <!-- Nút đăng nhập -->
-            <div class="flex items-center justify-between">
-                <button type="submit" class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                    Đăng Nhập
-                </button>
-            </div>
-            <!-- Thông báo lỗi -->
-            <p id="errorMessage" class="text-red-500 text-center mt-4 text-sm"></p>
-        </form>
+        <div class="bg-white rounded-xl shadow-md p-6 sm:p-8">
+            <form id="loginForm" class="space-y-6">
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700">Địa chỉ Email</label>
+                    <div class="mt-1">
+                        <input type="email" id="email" name="email" class="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 theme-focus-ring" required placeholder="nhap@email.com">
+                    </div>
+                </div>
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700">Mật khẩu</label>
+                    <div class="mt-1">
+                        <input type="password" id="password" name="password" class="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 theme-focus-ring" required placeholder="••••••••••">
+                    </div>
+                </div>
+                <!-- Nút đăng nhập -->
+                <div>
+                    <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white theme-button focus:outline-none focus:ring-2 focus:ring-offset-2 theme-focus-ring transition-colors">
+                        Đăng Nhập
+                    </button>
+                </div>
+                <!-- Thông báo lỗi -->
+                <p id="errorMessage" class="text-red-600 text-center text-sm h-4"></p>
+            </form>
+        </div>
     </div>
+
     <!-- Liên kết đến file JavaScript -->
     <script src="/script.js"></script>
 </body>

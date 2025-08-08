@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     }
-    // LOGIC CHO TRANG CHỦ (home.html - Giao diện Hybrid)
+    // LOGIC CHO TRANG CHỦ (home.html)
     else if (path.endsWith('home.html')) {
         // 1. Kiểm tra đăng nhập
         if (sessionStorage.getItem('isLoggedIn') !== 'true') {
@@ -58,50 +58,64 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         function showGridView() {
-            contentFrame.src = 'about:blank'; // Dừng tải iframe để tiết kiệm tài nguyên
+            contentFrame.src = 'about:blank';
             appView.classList.add('hidden');
             gridMenuView.classList.remove('hidden');
-            dropdownMenu.classList.add('hidden'); // Đảm bảo menu ẩn khi quay về
+            dropdownMenu.classList.add('hidden');
+        }
+        
+        // 4. Hàm xử lý click chung cho các link
+        function handleLinkClick(event, url) {
+            event.preventDefault();
+            // Kiểm tra xem có phải là ứng dụng đăng bài không
+            const isBlogApp = url.includes('quanlyblog.onrender.com');
+
+            if (isBlogApp) {
+                // Nếu là ứng dụng đăng bài, chuyển hướng cả trang
+                window.location.href = url;
+            } else {
+                // Với các ứng dụng khác, tải vào iframe
+                showAppView(url);
+                // Ẩn dropdown nếu nó đang mở
+                if (!dropdownMenu.classList.contains('hidden')) {
+                     dropdownMenu.classList.add('hidden');
+                }
+            }
         }
 
-        // 4. Gán sự kiện cho các thẻ trong Grid Menu
+        // 5. Gán sự kiện cho các thẻ trong Grid Menu
         gridLinks.forEach(link => {
             link.addEventListener('click', (e) => {
-                e.preventDefault();
-                const url = link.getAttribute('href');
-                showAppView(url);
+                handleLinkClick(e, link.getAttribute('href'));
             });
         });
 
-        // 5. Gán sự kiện cho nút Menu ẩn
+        // 6. Gán sự kiện cho nút Menu ẩn
         menuToggleBtn.addEventListener('click', (e) => {
-            e.stopPropagation(); // Ngăn sự kiện click lan ra ngoài
+            e.stopPropagation();
             dropdownMenu.classList.toggle('hidden');
         });
 
-        // 6. Gán sự kiện cho các link trong Dropdown
+        // 7. Gán sự kiện cho các link trong Dropdown
         dropdownLinks.forEach(link => {
             link.addEventListener('click', (e) => {
-                e.preventDefault();
-                const url = link.getAttribute('href');
-                contentFrame.src = url;
-                dropdownMenu.classList.add('hidden'); // Ẩn menu sau khi chọn
+                handleLinkClick(e, link.getAttribute('href'));
             });
         });
 
-        // 7. Gán sự kiện cho nút "Bảng điều khiển" (quay về Grid)
+        // 8. Gán sự kiện cho nút "Bảng điều khiển" (quay về Grid)
         backToGridBtn.addEventListener('click', (e) => {
             e.preventDefault();
             showGridView();
         });
 
-        // 8. Gán sự kiện cho nút Đăng xuất
+        // 9. Gán sự kiện cho nút Đăng xuất
         logoutButton.addEventListener('click', () => {
             sessionStorage.removeItem('isLoggedIn');
             window.location.href = '/index.html';
         });
         
-        // 9. Đóng dropdown khi click ra ngoài
+        // 10. Đóng dropdown khi click ra ngoài
         document.addEventListener('click', () => {
             if (!dropdownMenu.classList.contains('hidden')) {
                 dropdownMenu.classList.add('hidden');

@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="vi" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Thẻ meta PWA -->
+    <meta name="theme-color" content="#78350f"/>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/images/icons/icon-192x192.png">
+    <title>Dọn Dẹp Văn Bản</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        html {
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            overscroll-behavior-y: none; /* Ngăn chặn pull-to-refresh trên mobile */
+        }
+        /* Tùy chỉnh thanh cuộn cho đẹp hơn */
+        textarea::-webkit-scrollbar {
+            width: 8px;
+        }
+        textarea::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+        textarea::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 10px;
+        }
+        textarea::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+        /* Đảm bảo textarea co giãn đúng cách trong flex/grid */
+        .textarea-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+        .textarea-container textarea {
+            flex-grow: 1;
+            min-height: 150px; /* Chiều cao tối thiểu cho mobile */
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col bg-slate-100">
+
+    <!-- Vùng nội dung chính, có thể cuộn -->
+    <main class="flex-grow p-2 sm:p-4 overflow-y-auto">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
+            
+            <!-- Vùng nhập liệu -->
+            <div class="textarea-container bg-white rounded-xl shadow-sm border border-slate-200">
+                <label for="inputText" class="block text-base font-semibold text-slate-800 p-3 border-b border-slate-200">Văn bản gốc</label>
+                <textarea id="inputText" class="w-full p-3 bg-transparent rounded-b-xl focus:outline-none resize-none" placeholder="Dán văn bản của bạn vào đây..."></textarea>
+            </div>
+
+            <!-- Vùng kết quả -->
+            <div class="textarea-container bg-white rounded-xl shadow-sm border border-slate-200">
+                <label for="outputText" class="block text-base font-semibold text-slate-800 p-3 border-b border-slate-200">Kết quả</label>
+                <textarea id="outputText" readonly class="w-full p-3 bg-slate-50 rounded-b-xl focus:outline-none resize-none"></textarea>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Thanh menu điều khiển cố định -->
+    <footer class="flex-shrink-0 bg-white/70 backdrop-blur-sm border-t border-slate-200 shadow-t-lg">
+        <div class="max-w-4xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 p-2">
+            <button id="formatButton" title="Trình bày" class="bg-purple-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-purple-700 active:scale-95 transition-all duration-150 shadow-sm flex items-center justify-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                <span class="hidden sm:inline">Trình bày</span>
+            </button>
+            <button id="cleanButton" title="Làm sạch" class="bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 active:scale-95 transition-all duration-150 shadow-sm flex items-center justify-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L14.5 8.5L21 10L14.5 11.5L12 18L9.5 11.5L3 10L9.5 8.5L12 2Z"/><path d="M4 2L5 4"/><path d="M19 13L20 15"/><path d="M2 17L3 15"/><path d="M12 22L11 20"/></svg>
+                <span class="hidden sm:inline">Làm sạch</span>
+            </button>
+            <button id="copyButton" title="Sao chép" class="bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 active:scale-95 transition-all duration-150 shadow-sm flex items-center justify-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                <span class="hidden sm:inline">Sao chép</span>
+            </button>
+            <button id="clearAllButton" title="Xóa hết" class="bg-red-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-red-700 active:scale-95 transition-all duration-150 shadow-sm flex items-center justify-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                <span class="hidden sm:inline">Xóa hết</span>
+            </button>
+        </div>
+    </footer>
+
+    <!-- Thông báo nhanh (Toast) -->
+    <div id="toast" class="fixed bottom-20 right-5 bg-slate-800 text-white py-2 px-5 rounded-lg shadow-xl opacity-0 translate-y-3 transition-all duration-300 pointer-events-none">
+        Đã sao chép vào clipboard!
+    </div>
+
+    <script>
+        // Lấy các phần tử DOM
+        const inputText = document.getElementById('inputText');
+        const outputText = document.getElementById('outputText');
+        const formatButton = document.getElementById('formatButton');
+        const cleanButton = document.getElementById('cleanButton');
+        const copyButton = document.getElementById('copyButton');
+        const clearAllButton = document.getElementById('clearAllButton');
+        const toast = document.getElementById('toast');
+
+        /**
+         * Chức năng trình bày văn bản
+         */
+        function formatText(text) {
+            const lines = text.split('\n');
+            const vietnameseLines = [];
+            const chineseLines = [];
+            const sourceLines = [];
+
+            const chineseRegex = /[\u4e00-\u9fa5]/;
+            const sourceRegex = /^(wenda|zongshu|shuohua)/i;
+
+            lines.forEach(line => {
+                const trimmedLine = line.trim();
+                if (sourceRegex.test(trimmedLine)) {
+                    sourceLines.push(line);
+                } else if (chineseRegex.test(line)) {
+                    chineseLines.push(line);
+                } else if (trimmedLine !== '') {
+                    vietnameseLines.push(line);
+                }
+            });
+
+            const blocks = [];
+            if (vietnameseLines.length > 0) blocks.push(vietnameseLines.join('\n').trim());
+            if (sourceLines.length > 0) blocks.push(sourceLines.join('\n').trim());
+            if (chineseLines.length > 0) blocks.push(chineseLines.join('\n').trim());
+            
+            return blocks.join('\n\n');
+        }
+
+        /**
+         * Làm sạch văn bản (Đã cập nhật toàn diện)
+         */
+        function cleanText(text) {
+            // --- BƯỚC 1: BẢO VỆ URL ---
+            const urlRegex = /(?:(?:https?|ftp):\/\/|www\.)[^\s/$.?#].[^\s]*/gi;
+            const urlMap = new Map();
+            let placeholderIndex = 0;
+
+            const textWithPlaceholders = text.replace(urlRegex, (url) => {
+                const placeholder = `URLPLACEHOLDER${placeholderIndex}`;
+                urlMap.set(placeholder, url);
+                placeholderIndex++;
+                return placeholder;
+            });
+
+            // --- BƯỚC 2: XỬ LÝ TỪNG DÒNG ---
+            const lines = textWithPlaceholders.split('\n');
+            const cleanedLines = lines.map(line => {
+                let cleanedLine = line;
+
+                // --- LOGIC DỌN DẸP EMOJI/SMILEY (PHIÊN BẢN 3.0) ---
+                // Logic này được thiết kế lại để xử lý các trường hợp phức tạp một cách chính xác hơn.
+
+                // 2a. Định nghĩa các mẫu cơ bản
+                const emojiPattern = `\\p{Emoji_Presentation}|\\p{Extended_Pictographic}`;
+                // Smileys "an toàn" (không dùng dấu ngoặc đơn của văn bản)
+                const safeSmileys = `;-?\\)|:-?D|:-?P|XD`;
+                // Smiley mặt cười :)
+                const happySmiley = `:-?\\)`;
+                // Smiley mặt buồn :( - cần thoát ký tự `(`
+                const sadSmiley = `:-?\\(`;
+
+                // 2b. Xóa emoji và các smiley an toàn (cùng với dấu hai chấm nếu có)
+                // Ví dụ: "👍:", "XD", ";)"
+                const emojiAndSafeSmileyPattern = new RegExp(`(?:${emojiPattern}|${safeSmileys})\\s*:?`, 'gu');
+                cleanedLine = cleanedLine.replace(emojiAndSafeSmileyPattern, '');
+                
+                // 2c. Xóa smiley mặt cười (cùng với dấu hai chấm nếu có)
+                // Ví dụ: ":)", ":-):"
+                const happySmileyPattern = new RegExp(`${happySmiley}\\s*:?`, 'g');
+                cleanedLine = cleanedLine.replace(happySmileyPattern, '');
+                
+                // 2d. Xử lý đặc biệt cho smiley mặt buồn
+                // Thay thế ":(" hoặc ":-(" bằng "(", để giữ lại dấu ngoặc của văn bản.
+                // Ví dụ: "☎️:(Ồ)" -> "☎️(Ồ)" (sau bước 2b) -> "(Ồ)" (sau bước 2d)
+                // Ví dụ: ":(Ồ)" -> "(Ồ)"
+                const sadSmileyPattern = new RegExp(sadSmiley, 'g');
+                cleanedLine = cleanedLine.replace(sadSmileyPattern, '(');
+
+                // 2e. Dọn dẹp các khoảng trắng thừa có thể xuất hiện sau khi xóa.
+                cleanedLine = cleanedLine.replace(/\s+/g, ' ').trim();
+                
+                return cleanedLine;
+            });
+            
+            // --- BƯỚC 3: GHÉP DÒNG VÀ KHÔI PHỤC URL ---
+            let cleanedTextWithPlaceholders = cleanedLines.join('\n');
+
+            for (const [placeholder, url] of urlMap.entries()) {
+                const placeholderRegex = new RegExp(placeholder.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g');
+                cleanedTextWithPlaceholders = cleanedTextWithPlaceholders.replace(placeholderRegex, url);
+            }
+            
+            return cleanedTextWithPlaceholders;
+        }
+
+        // Gán sự kiện cho nút "Trình bày"
+        formatButton.addEventListener('click', () => {
+            const originalText = inputText.value;
+            const formattedText = formatText(originalText);
+            outputText.value = formattedText;
+        });
+
+        // Gán sự kiện cho nút "Làm sạch"
+        cleanButton.addEventListener('click', () => {
+            const textToClean = outputText.value || inputText.value;
+            const cleanedText = cleanText(textToClean);
+            outputText.value = cleanedText;
+        });
+
+        // Gán sự kiện cho nút "Sao chép"
+        copyButton.addEventListener('click', () => {
+            if (outputText.value) {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(outputText.value).then(showToast).catch(copyFallback);
+                } else {
+                    copyFallback();
+                }
+            }
+        });
+        
+        // Phương án sao chép dự phòng
+        function copyFallback() {
+             const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = outputText.value;
+            tempTextArea.style.position = 'absolute';
+            tempTextArea.style.left = '-9999px';
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            try {
+                document.execCommand('copy');
+                showToast();
+            } catch (err) {
+                console.error('Lỗi sao chép (fallback): ', err);
+            }
+            document.body.removeChild(tempTextArea);
+        }
+
+        // Gán sự kiện cho nút "Xóa hết"
+        clearAllButton.addEventListener('click', () => {
+            inputText.value = '';
+            outputText.value = '';
+        });
+
+        // Hàm hiển thị thông báo nhanh
+        function showToast() {
+            toast.classList.remove('opacity-0', 'translate-y-3');
+            toast.classList.add('opacity-100', 'translate-y-0');
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'translate-y-3');
+            }, 2000);
+        }
+
+    </script>
+    <script>
+        // --- SCRIPT CHÍNH CHO ỨNG DỤNG ---
+        document.addEventListener('DOMContentLoaded', function() {
+            const navButtons = document.querySelectorAll('.nav-btn');
+            const contentFrame = document.getElementById('content-frame');
+            const installButton = document.getElementById('install-button');
+            let deferredPrompt;
+
+            // --- Xử lý điều hướng ---
+            function selectPage(buttonToActivate) {
+                const pageUrl = buttonToActivate.dataset.page;
+                if (!pageUrl) return;
+                contentFrame.src = pageUrl;
+                navButtons.forEach(button => button.classList.remove('active'));
+                buttonToActivate.classList.add('active');
+            }
+
+            navButtons.forEach(button => {
+                button.addEventListener('click', function() { selectPage(this); });
+            });
+            
+            // Tải trang home.html mặc định khi mở ứng dụng
+            const defaultButton = document.querySelector('button[data-page="home.html"]');
+            if (defaultButton) {
+                selectPage(defaultButton);
+            }
+
+            // --- Xử lý cài đặt PWA ---
+            window.addEventListener('beforeinstallprompt', (e) => {
+                // Ngăn trình duyệt hiển thị thông báo mặc định
+                e.preventDefault();
+                // Lưu lại sự kiện để có thể dùng sau
+                deferredPrompt = e;
+                // Hiển thị nút cài đặt tùy chỉnh của chúng ta
+                installButton.style.display = 'block';
+            });
+
+            installButton.addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    installButton.style.display = 'none'; // Ẩn nút đi
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    console.log(`User response to the install prompt: ${outcome}`);
+                    deferredPrompt = null;
+                }
+            });
+
+            window.addEventListener('appinstalled', () => {
+                installButton.style.display = 'none';
+                deferredPrompt = null;
+                console.log('PWA was installed');
+            });
+
+            // --- Đăng ký Service Worker ---
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('/sw.js').then(registration => {
+                        console.log('Service Worker registered: ', registration);
+                    }).catch(error => {
+                        console.log('Service Worker registration failed: ', error);
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>

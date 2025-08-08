@@ -1,0 +1,21 @@
+{
+  "name": "render-login-app",
+  "version": "1.0.0",
+  "description": "Một ứng dụng đăng nhập đơn giản sử dụng biến môi trường trên Render.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "render",
+    "nodejs",
+    "express",
+    "login"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}

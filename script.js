@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // *** LOGIC MỚI: ĐĂNG KÝ SERVICE WORKER CHO TRANG CHÍNH ***
+        // 2. Đăng ký Service Worker cho trang chính
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/service-worker.js')
@@ -51,9 +51,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
             });
         }
-        // *** KẾT THÚC LOGIC MỚI ***
 
-        // 2. Lấy các phần tử DOM
+        // 3. Lấy các phần tử DOM
         const gridMenuView = document.getElementById('grid-menu-view');
         const appView = document.getElementById('app-view');
         const contentFrame = document.getElementById('contentFrame');
@@ -64,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const backToGridBtn = document.getElementById('back-to-grid-btn');
         const logoutButton = document.getElementById('logoutButton');
 
-        // 3. Hàm chuyển đổi giao diện
+        // 4. Hàm chuyển đổi giao diện
         function showAppView(url) {
             contentFrame.src = url;
             gridMenuView.classList.add('hidden');
@@ -78,62 +77,59 @@ document.addEventListener('DOMContentLoaded', () => {
             dropdownMenu.classList.add('hidden');
         }
         
-        // 4. Hàm xử lý click chung cho các link
+        // 5. Hàm xử lý click chung cho các link
         async function handleLinkClick(event, url) {
             event.preventDefault();
-            const isBlogApp = url.includes('quanlyblog.onrender.com');
-            const isChatApp = url.includes('chat.pmtl.site');
-
-            if (isBlogApp) {
-                window.location.href = url;
-                return;
-            }
-
-            if (isChatApp) {
-                if ('Notification' in window && Notification.permission === 'default') {
-                    await Notification.requestPermission();
-                }
-            }
+            // Các ứng dụng cần quyền đặc biệt hoặc cần đăng nhập riêng
+            const specialApps = ['quanlyblog.onrender.com', 'chat.pmtl.site'];
             
-            showAppView(url);
-            if (!dropdownMenu.classList.contains('hidden')) {
-                 dropdownMenu.classList.add('hidden');
+            const isSpecialApp = specialApps.some(appUrl => url.includes(appUrl));
+
+            if (isSpecialApp) {
+                // Nếu là ứng dụng đặc biệt, chuyển hướng cả trang
+                window.location.href = url;
+            } else {
+                // Với các ứng dụng khác, tải vào iframe
+                showAppView(url);
+                if (!dropdownMenu.classList.contains('hidden')) {
+                     dropdownMenu.classList.add('hidden');
+                }
             }
         }
 
-        // 5. Gán sự kiện cho các thẻ trong Grid Menu
+        // Gán sự kiện cho các thẻ trong Grid Menu
         gridLinks.forEach(link => {
             link.addEventListener('click', (e) => {
                 handleLinkClick(e, link.getAttribute('href'));
             });
         });
 
-        // 6. Gán sự kiện cho nút Menu ẩn
+        // Gán sự kiện cho nút Menu ẩn
         menuToggleBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             dropdownMenu.classList.toggle('hidden');
         });
 
-        // 7. Gán sự kiện cho các link trong Dropdown
+        // Gán sự kiện cho các link trong Dropdown
         dropdownLinks.forEach(link => {
             link.addEventListener('click', (e) => {
                 handleLinkClick(e, link.getAttribute('href'));
             });
         });
 
-        // 8. Gán sự kiện cho nút "Bảng điều khiển" (quay về Grid)
+        // Gán sự kiện cho nút "Bảng điều khiển" (quay về Grid)
         backToGridBtn.addEventListener('click', (e) => {
             e.preventDefault();
             showGridView();
         });
 
-        // 9. Gán sự kiện cho nút Đăng xuất
+        // Gán sự kiện cho nút Đăng xuất
         logoutButton.addEventListener('click', () => {
             sessionStorage.removeItem('isLoggedIn');
             window.location.href = '/index.html';
         });
         
-        // 10. Đóng dropdown khi click ra ngoài
+        // Đóng dropdown khi click ra ngoài
         document.addEventListener('click', () => {
             if (!dropdownMenu.classList.contains('hidden')) {
                 dropdownMenu.classList.add('hidden');

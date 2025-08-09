@@ -73,13 +73,18 @@ function setupHomePage() {
             link.addEventListener('click', (e) => handleLinkClick(e, link.getAttribute('href')));
         });
         
+        // *** PHẦN SỬA LỖI ***
         dropdownLinks.forEach(link => {
-            link.addEventListener('click', (e) => {
-                // Nút "Bảng điều khiển" có href="#" nên sẽ không được xử lý ở đây
-                handleLinkClick(e, link.getAttribute('href'));
-                if (dropdownMenu) dropdownMenu.classList.add('hidden');
-            });
+            // Chỉ gán sự kiện cho các link thực sự là ứng dụng,
+            // bỏ qua nút "Bảng điều khiển" (vì nó đã có listener riêng).
+            if (link.id !== 'back-to-grid-btn') {
+                link.addEventListener('click', (e) => {
+                    handleLinkClick(e, link.getAttribute('href'));
+                    if (dropdownMenu) dropdownMenu.classList.add('hidden');
+                });
+            }
         });
+        // *** KẾT THÚC PHẦN SỬA LỖI ***
 
         backToGridBtn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -112,6 +117,9 @@ function setupHomePage() {
             } else {
                 showGridView(true);
             }
+        } else {
+            // Xử lý trường hợp state là null (ví dụ: trang ban đầu)
+            showGridView(true);
         }
     });
     

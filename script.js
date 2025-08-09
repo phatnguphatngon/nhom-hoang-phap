@@ -64,22 +64,29 @@ document.addEventListener('DOMContentLoaded', () => {
             dropdownMenu.classList.add('hidden');
         }
         
-        // 4. Hàm xử lý click chung cho các link
-        function handleLinkClick(event, url) {
+        // 4. Hàm xử lý click chung cho các link (ĐÃ CẬP NHẬT)
+        async function handleLinkClick(event, url) {
             event.preventDefault();
-            // Kiểm tra xem có phải là ứng dụng đăng bài không
             const isBlogApp = url.includes('quanlyblog.onrender.com');
+            const isChatApp = url.includes('chat.pmtl.site');
 
             if (isBlogApp) {
-                // Nếu là ứng dụng đăng bài, chuyển hướng cả trang
                 window.location.href = url;
-            } else {
-                // Với các ứng dụng khác, tải vào iframe
-                showAppView(url);
-                // Ẩn dropdown nếu nó đang mở
-                if (!dropdownMenu.classList.contains('hidden')) {
-                     dropdownMenu.classList.add('hidden');
+                return;
+            }
+
+            // *** LOGIC MỚI: XIN QUYỀN TRƯỚC KHI MỞ CHAT ***
+            if (isChatApp) {
+                if ('Notification' in window && Notification.permission === 'default') {
+                    // Hỏi xin quyền từ trang chính (home.html)
+                    await Notification.requestPermission();
                 }
+            }
+            // *** KẾT THÚC LOGIC MỚI ***
+
+            showAppView(url);
+            if (!dropdownMenu.classList.contains('hidden')) {
+                 dropdownMenu.classList.add('hidden');
             }
         }
 

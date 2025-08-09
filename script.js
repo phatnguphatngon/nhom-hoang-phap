@@ -28,7 +28,7 @@ function setupHomePage() {
     const gridLinks = gridMenuView.querySelectorAll('.menu-card');
     const dropdownLinks = dropdownMenu.querySelectorAll('.dropdown-link');
     const backToGridBtn = document.getElementById('back-to-grid-btn');
-    const logoutButton = document.getElementById('logoutButton');
+    const logoutButtons = document.querySelectorAll('.logout-btn'); // Lấy tất cả các nút đăng xuất
 
     // 4. Hàm chuyển đổi giao diện (ĐÃ TÍCH HỢP HISTORY API)
     function showAppView(url, fromHistory = false) {
@@ -73,10 +73,7 @@ function setupHomePage() {
             link.addEventListener('click', (e) => handleLinkClick(e, link.getAttribute('href')));
         });
         
-        // *** PHẦN SỬA LỖI ***
         dropdownLinks.forEach(link => {
-            // Chỉ gán sự kiện cho các link thực sự là ứng dụng,
-            // bỏ qua nút "Bảng điều khiển" (vì nó đã có listener riêng).
             if (link.id !== 'back-to-grid-btn') {
                 link.addEventListener('click', (e) => {
                     handleLinkClick(e, link.getAttribute('href'));
@@ -84,7 +81,6 @@ function setupHomePage() {
                 });
             }
         });
-        // *** KẾT THÚC PHẦN SỬA LỖI ***
 
         backToGridBtn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -96,9 +92,12 @@ function setupHomePage() {
             dropdownMenu.classList.toggle('hidden');
         });
 
-        logoutButton.addEventListener('click', () => {
-            sessionStorage.removeItem('isLoggedIn');
-            window.location.href = '/index.html';
+        // Gán sự kiện cho tất cả các nút đăng xuất
+        logoutButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                sessionStorage.removeItem('isLoggedIn');
+                window.location.href = '/index.html';
+            });
         });
 
         document.addEventListener('click', () => {

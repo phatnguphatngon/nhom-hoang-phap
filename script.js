@@ -1,182 +1,148 @@
-// --- BẮT ĐẦU PHẦN LOGIC MỚI ---
-
-// Đóng gói toàn bộ logic của trang chủ vào một hàm duy nhất
-function setupHomePage() {
-    // 1. Kiểm tra đăng nhập
-    if (sessionStorage.getItem('isLoggedIn') !== 'true') {
-        window.location.href = '/index.html';
-        return; // Dừng thực thi nếu chưa đăng nhập
-    }
-
-    // 2. Đăng ký Service Worker (chỉ khi cần)
-    if ('serviceWorker' in navigator && !navigator.serviceWorker.controller) {
-        navigator.serviceWorker.register('/service-worker.js')
-            .then(registration => {
-                console.log('Service Worker của trang chính đã được đăng ký:', registration);
-            })
-            .catch(err => {
-                console.error('Lỗi đăng ký Service Worker của trang chính:', err);
-            });
-    }
-
-    // 3. Lấy các phần tử DOM
-    const gridMenuView = document.getElementById('grid-menu-view');
-    const appView = document.getElementById('app-view');
-    const contentFrame = document.getElementById('contentFrame');
-    const menuToggleBtn = document.getElementById('menu-toggle-btn');
-    const dropdownMenu = document.getElementById('dropdown-menu');
-    const gridLinks = gridMenuView.querySelectorAll('.menu-card');
-    const dropdownLinks = dropdownMenu.querySelectorAll('.dropdown-link');
-    const backToGridBtn = document.getElementById('back-to-grid-btn');
-    const logoutButtons = document.querySelectorAll('.logout-btn'); // Lấy tất cả các nút đăng xuất
-
-    // 4. Hàm chuyển đổi giao diện (ĐÃ TÍCH HỢP HISTORY API)
-    function showAppView(url, fromHistory = false) {
-        contentFrame.src = url;
-        gridMenuView.classList.add('hidden');
-        appView.classList.remove('hidden');
-        // Chỉ thêm vào lịch sử nếu đây là hành động mới (không phải từ nút back)
-        if (!fromHistory) {
-            history.pushState({ view: 'app', appUrl: url }, '', window.location.pathname);
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DANH SÁCH TRỢ LÝ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body, html {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Ngăn cuộn trang chính */
         }
-    }
-
-    function showGridView(fromHistory = false) {
-        contentFrame.src = 'about:blank';
-        appView.classList.add('hidden');
-        gridMenuView.classList.remove('hidden');
-        if (dropdownMenu) dropdownMenu.classList.add('hidden');
-        
-        // Nếu người dùng bấm nút "Bảng điều khiển" để quay về (không phải nút back của trình duyệt)
-        // và đang ở trong một app, chúng ta sẽ đi lùi trong lịch sử.
-        if (!fromHistory && history.state && history.state.view === 'app') {
-            history.back();
+        .menu-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
         }
-    }
-    
-    // 5. Hàm xử lý click chung cho các link
-    function handleLinkClick(event, url) {
-        event.preventDefault();
-        const specialApps = ['quanlyblog.onrender.com', 'chat.pmtl.site'];
-        const isSpecialApp = specialApps.some(appUrl => url.includes(appUrl));
-
-        if (isSpecialApp) {
-            window.location.href = url; // Chuyển hướng cho các app đặc biệt
-        } else {
-            showAppView(url); // Hiển thị app trong iframe và quản lý history
+        .menu-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
         }
-    }
-
-    // 6. Gán sự kiện (chỉ một lần để tránh lặp)
-    if (!window.homePageListenersAttached) {
-        gridLinks.forEach(link => {
-            link.addEventListener('click', (e) => handleLinkClick(e, link.getAttribute('href')));
-        });
-        
-        dropdownLinks.forEach(link => {
-            if (link.id !== 'back-to-grid-btn') {
-                link.addEventListener('click', (e) => {
-                    handleLinkClick(e, link.getAttribute('href'));
-                    if (dropdownMenu) dropdownMenu.classList.add('hidden');
-                });
-            }
-        });
-
-        backToGridBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            showGridView();
-        });
-
-        menuToggleBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            dropdownMenu.classList.toggle('hidden');
-        });
-
-        // Gán sự kiện cho tất cả các nút đăng xuất
-        logoutButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                sessionStorage.removeItem('isLoggedIn');
-                window.location.href = '/index.html';
-            });
-        });
-
-        document.addEventListener('click', () => {
-            if (dropdownMenu && !dropdownMenu.classList.contains('hidden')) {
-                dropdownMenu.classList.add('hidden');
-            }
-        });
-        window.homePageListenersAttached = true;
-    }
-
-    // 7. LẮNG NGHE SỰ KIỆN NÚT BACK CỦA TRÌNH DUYỆT
-    window.addEventListener('popstate', (event) => {
-        if (event.state) {
-            if (event.state.view === 'app') {
-                showAppView(event.state.appUrl, true);
-            } else {
-                showGridView(true);
-            }
-        } else {
-            // Xử lý trường hợp state là null (ví dụ: trang ban đầu)
-            showGridView(true);
+        #grid-menu-view {
+            height: 100%;
+            overflow-y: auto; /* Cho phép cuộn nếu cần */
         }
-    });
-    
-    // 8. Thiết lập trạng thái ban đầu cho trang
-    // Nếu đang không ở trong app view, đảm bảo trạng thái history là 'grid'
-    if (appView.classList.contains('hidden')) {
-        history.replaceState({ view: 'grid' }, '', window.location.pathname);
-    }
-}
-
-// --- KẾT THÚC PHẦN LOGIC MỚI ---
-
-
-// Logic chính để quyết định chạy mã nào dựa trên URL
-const path = window.location.pathname;
-
-if (path === '/' || path.endsWith('index.html')) {
-    // LOGIC CHO TRANG ĐĂNG NHẬP
-    document.addEventListener('DOMContentLoaded', () => {
-        const loginForm = document.getElementById('loginForm');
-        if (loginForm) {
-            loginForm.addEventListener('submit', async (event) => {
-                event.preventDefault();
-                const email = loginForm.email.value;
-                const password = loginForm.password.value;
-                const errorMessage = document.getElementById('errorMessage');
-                errorMessage.textContent = '';
-                try {
-                    const response = await fetch('/login', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email, password }),
-                    });
-                    const result = await response.json();
-                    if (response.ok) {
-                        sessionStorage.setItem('isLoggedIn', 'true');
-                        window.location.href = '/home.html';
-                    } else {
-                        errorMessage.textContent = result.message;
-                    }
-                } catch (error) {
-                    errorMessage.textContent = 'Đã có lỗi xảy ra.';
-                }
-            });
+        #app-view, #contentFrame {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+            border: none;
         }
-    });
-} else if (path.endsWith('home.html')) {
-    // LOGIC CHO TRANG CHỦ
-    // Chạy khi tải trang lần đầu
-    document.addEventListener('DOMContentLoaded', setupHomePage);
-    
-    // Chạy khi trang được khôi phục từ cache (nhấn nút Back từ trang ngoài)
-    window.addEventListener('pageshow', (event) => {
-        // event.persisted là true khi trang được tải từ bfcache
-        if (event.persisted) {
-            console.log("Trang được khôi phục từ bfcache. Chạy lại setup.");
-            // Chạy lại toàn bộ logic để đảm bảo trạng thái đúng
-            setupHomePage();
-        }
-    });
-}
+    </style>
+</head>
+<body>
+
+    <!-- VIEW 1: GRID MENU (Hiển thị sau khi đăng nhập) -->
+    <div id="grid-menu-view">
+		<header class="bg-white shadow-sm sticky top-0 z-10">
+			<!-- Thêm flex justify-between items-center vào đây -->
+			<div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+				<!-- Xóa text-center ở đây -->
+				<h1 class="text-2xl font-bold text-gray-800">
+					DANH SÁCH TRỢ LÝ
+				</h1>
+				<!-- Thay đổi padding px-4 py-2 thành px-3 py-1.5 -->
+				<button class="logout-btn inline-flex items-center justify-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+					<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+					<span>Đăng xuất</span>
+				</button>
+			</div>
+		</header>
+        <main class="py-10">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    
+                    <a href="https://khaithi-search-frontend.onrender.com/" class="menu-card block bg-white rounded-xl p-6 shadow-md border border-gray-200">
+                        <div class="flex items-center space-x-4">
+                            <div class="flex-shrink-0 bg-blue-100 text-blue-600 rounded-lg p-3"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg></div>
+                            <div><h3 class="text-lg font-semibold text-gray-900">Tra Cứu Thư Viện</h3><p class="text-gray-500 mt-1 text-sm">Công cụ tìm kiếm thông tin.</p></div>
+                        </div>
+                    </a>
+                    <a href="https://dangbai.pmtl.site" class="menu-card block bg-white rounded-xl p-6 shadow-md border border-gray-200">
+                         <div class="flex items-center space-x-4">
+                            <div class="flex-shrink-0 bg-green-100 text-green-600 rounded-lg p-3"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></div>
+                            <div><h3 class="text-lg font-semibold text-gray-900">Đăng Bài</h3><p class="text-gray-500 mt-1 text-sm">Quản lý và đăng khai thị.</p></div>
+                        </div>
+                    </a>
+                    <a href="https://dichthuatgemmini.onrender.com/" class="menu-card block bg-white rounded-xl p-6 shadow-md border border-gray-200">
+                         <div class="flex items-center space-x-4">
+                            <div class="flex-shrink-0 bg-green-100 text-green-600 rounded-lg p-3"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></div>
+                            <div><h3 class="text-lg font-semibold text-gray-900">Dịch Thuật</h3><p class="text-gray-500 mt-1 text-sm">Trợ lý dịch thuật.</p></div>
+                        </div>
+                    </a>
+                    <a href="/dondepvanban.html" class="menu-card block bg-white rounded-xl p-6 shadow-md border border-gray-200">
+                        <div class="flex items-center space-x-4">
+                            <div class="flex-shrink-0 bg-purple-100 text-purple-600 rounded-lg p-3"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 21.5a2.5 2.5 0 0 1-4.2 2 .5.5 0 0 1-.2-1l1.2-3.7a2.5 2.5 0 0 1 4.2-2l.5.5a2.5 2.5 0 0 1 0 3.5l-1.5 1.5a.5.5 0 0 1-.8 0L12.5 21.5z"></path><path d="m17 2-5 5"></path><path d="M15 7.5c.7-1 1.5-1.5 2.5-2C20 4.5 21.5 6 21.5 7.5c0 .7-.5 1.5-1 2.5-1 1-1.5 1.5-2.5 2.5C17 13.5 16 14 15 14c-.7 0-1.5-.5-2-1.5a2.5 2.5 0 0 1 0-3.5c.5-1 1.3-1.5 2-2Z"></path></svg></div>
+                            <div><h3 class="text-lg font-semibold text-gray-900">Dọn Dẹp Văn Bản</h3><p class="text-gray-500 mt-1 text-sm">Làm sạch, định dạng văn bản.</p></div>
+                        </div>
+                    </a>
+                    <a href="https://thietkehungging.onrender.com/" class="menu-card block bg-white rounded-xl p-6 shadow-md border border-gray-200">
+                        <div class="flex items-center space-x-4">
+                            <div class="flex-shrink-0 bg-yellow-100 text-yellow-600 rounded-lg p-3"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 10.5c.1-.3.2-.6.2-1 0-2.5-2-4.5-4.5-4.5S5.7 7 5.7 9.5c0 .4.1.7.2 1M18 14v-2.5c0-4.4-3.6-8-8-8s-8 3.6-8 8V14"/><path d="M18 18v2a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4v-2"/><path d="M7.5 14h9a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5Z"/></svg></div>
+                            <div><h3 class="text-lg font-semibold text-gray-900">Thiết Kế Hugging</h3><p class="text-gray-500 mt-1 text-sm">Trợ lý thiết kế.</p></div>
+                        </div>
+                    </a>
+                    <a href="https://thietkestability.onrender.com/" class="menu-card block bg-white rounded-xl p-6 shadow-md border border-gray-200">
+                        <div class="flex items-center space-x-4">
+                            <div class="flex-shrink-0 bg-pink-100 text-pink-600 rounded-lg p-3"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"></polygon><line x1="12" y1="22" x2="12" y2="12"></line><line x1="22" y1="8.5" x2="12" y2="12"></line><line x1="2" y1="8.5" x2="12" y2="12"></line><line x1="17" y1="5.5" x2="7" y2="5.5"></line></svg></div>
+                            <div><h3 class="text-lg font-semibold text-gray-900">Thiết Kế Stability</h3><p class="text-gray-500 mt-1 text-sm">Trợ lý thiết kế.</p></div>
+                        </div>
+                    </a>
+                    <a href="https://trolysangtao.pmtl.site" class="menu-card block bg-white rounded-xl p-6 shadow-md border border-gray-200">
+                        <div class="flex items-center space-x-4">
+                            <div class="flex-shrink-0 bg-orange-100 text-orange-600 rounded-lg p-3"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L14.5 8.5L21 10L14.5 11.5L12 18L9.5 11.5L3 10L9.5 8.5L12 2Z"/><path d="M4 2L5 4"/><path d="M19 13L20 15"/><path d="M2 17L3 15"/><path d="M12 22L11 20"/></svg></div>
+                            <div><h3 class="text-lg font-semibold text-gray-900">Thiết kế Sáng Tạo</h3><p class="text-gray-500 mt-1 text-sm">Trợ lý thiết kế hình ảnh đơn giản.</p></div>
+                        </div>
+                    </a>
+                    <a href="https://chat.pmtl.site" class="menu-card block bg-white rounded-xl p-6 shadow-md border border-gray-200">
+                        <div class="flex items-center space-x-4">
+                            <div class="flex-shrink-0 bg-teal-100 text-teal-600 rounded-lg p-3"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div>
+                            <div><h3 class="text-lg font-semibold text-gray-900">Chat với Cộng Đồng</h3><p class="text-gray-500 mt-1 text-sm">Giao lưu và hỏi đáp trực tuyến.</p></div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- VIEW 2: APP VIEW (Hiển thị khi chọn một ứng dụng) -->
+    <div id="app-view" class="hidden">
+        <!-- Nút Menu ẩn và Dropdown -->
+        <div class="absolute top-2 left-2 z-50">
+            <button id="menu-toggle-btn" class="bg-black/20 hover:bg-black/40 backdrop-blur-sm text-white rounded-full p-2 shadow-lg focus:outline-none focus:ring-2 focus:ring-white">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            </button>
+            <nav id="dropdown-menu" class="hidden absolute top-12 left-0 bg-white rounded-lg shadow-xl w-60 py-2">
+                <a href="#" id="back-to-grid-btn" class="dropdown-link flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 mr-3"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                    <span>DANH SÁCH TRỢ LÝ</span>
+                </a>
+                <div class="border-t my-2"></div>
+                <a href="https://khaithi-search-frontend.onrender.com/" class="dropdown-link flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100"><span>Tra Cứu Thư Viện</span></a>
+                <a href="https://dangbai.pmtl.site" class="dropdown-link flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100"><span>Đăng Bài Khai Thị</span></a>
+                <a href="https://dichthuatgemmini.onrender.com/" class="dropdown-link flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100"><span>Dịch Thuật</span></a>
+                <a href="/dondepvanban.html" class="dropdown-link flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100"><span>Dọn Dẹp Văn Bản</span></a>
+                <a href="https://thietkehungging.onrender.com/" class="dropdown-link flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100"><span>Thiết Kế Hugging</span></a>
+                <a href="https://thietkestability.onrender.com/" class="dropdown-link flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100"><span>Thiết Kế Stability</span></a>
+                <a href="https://trolysangtao.pmtl.site" class="dropdown-link flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100"><span>Thiết kế Sáng Tạo</span></a>
+				<a href="https://chat.pmtl.site" class="dropdown-link flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100"><span>Chat với Cộng Đồng</span></a>
+				<div class="border-t my-2"></div>
+                <button id="logoutButton" class="w-full text-left flex items-center px-4 py-2 text-red-600 hover:bg-red-50">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 mr-3"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                    <span>Đăng xuất</span>
+                </button>
+            </nav>
+        </div>
+        <!-- Iframe để tải nội dung ứng dụng -->
+		<iframe id="contentFrame" title="Nội dung ứng dụng" allow="notifications; microphone; camera; display-capture; autoplay; clipboard-write"></iframe>
+    </div>
+
+    <script src="/script.js"></script>
+</body>
+</html>

@@ -40,17 +40,20 @@
 
     <!-- VIEW 1: GRID MENU (Hiển thị sau khi đăng nhập) -->
     <div id="grid-menu-view">
-        <header class="bg-white shadow-sm sticky top-0 z-10">
-            <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
-                <h1 class="text-2xl font-bold text-center text-gray-800">
-                    DANH SÁCH TRỢ LÝ
-                </h1>
-                <button class="logout-btn inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-                    <span>Đăng xuất</span>
-                </button>
-            </div>
-        </header>
+		<header class="bg-white shadow-sm sticky top-0 z-10">
+			<!-- Thêm flex justify-between items-center vào đây -->
+			<div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+				<!-- Xóa text-center ở đây -->
+				<h1 class="text-2xl font-bold text-gray-800">
+					DANH SÁCH TRỢ LÝ
+				</h1>
+				<!-- Thay đổi padding px-4 py-2 thành px-3 py-1.5 -->
+				<button class="logout-btn inline-flex items-center justify-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+					<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+					<span>Đăng xuất</span>
+				</button>
+			</div>
+		</header>
         <main class="py-10">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -143,4 +146,3 @@
     <script src="/script.js"></script>
 </body>
 </html>
-

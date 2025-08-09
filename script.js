@@ -39,6 +39,20 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // *** LOGIC MỚI: ĐĂNG KÝ SERVICE WORKER CHO TRANG CHÍNH ***
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(registration => {
+                        console.log('Service Worker của trang chính đã được đăng ký:', registration);
+                    })
+                    .catch(err => {
+                        console.error('Lỗi đăng ký Service Worker của trang chính:', err);
+                    });
+            });
+        }
+        // *** KẾT THÚC LOGIC MỚI ***
+
         // 2. Lấy các phần tử DOM
         const gridMenuView = document.getElementById('grid-menu-view');
         const appView = document.getElementById('app-view');
@@ -64,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
             dropdownMenu.classList.add('hidden');
         }
         
-        // 4. Hàm xử lý click chung cho các link (ĐÃ CẬP NHẬT)
+        // 4. Hàm xử lý click chung cho các link
         async function handleLinkClick(event, url) {
             event.preventDefault();
             const isBlogApp = url.includes('quanlyblog.onrender.com');
@@ -75,15 +89,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // *** LOGIC MỚI: XIN QUYỀN TRƯỚC KHI MỞ CHAT ***
             if (isChatApp) {
                 if ('Notification' in window && Notification.permission === 'default') {
-                    // Hỏi xin quyền từ trang chính (home.html)
                     await Notification.requestPermission();
                 }
             }
-            // *** KẾT THÚC LOGIC MỚI ***
-
+            
             showAppView(url);
             if (!dropdownMenu.classList.contains('hidden')) {
                  dropdownMenu.classList.add('hidden');

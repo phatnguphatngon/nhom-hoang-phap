@@ -54,9 +54,19 @@ function setupHomePage() {
         }
     }
     
-    // 5. Hàm xử lý click chung cho các link
-    function handleLinkClick(event, url) {
+    // 5. Hàm xử lý click chung cho các link (ĐÃ CẬP NHẬT)
+    function handleLinkClick(event) {
+        const link = event.currentTarget;
+        const url = link.getAttribute('href');
+
+        // Nếu link có target="_blank", không làm gì cả để trình duyệt tự xử lý
+        if (link.getAttribute('target') === '_blank') {
+            return;
+        }
+        
+        // Nếu không, chặn hành vi mặc định và xử lý bằng logic của chúng ta
         event.preventDefault();
+
         const specialApps = ['quanlyblog.onrender.com', 'chat.pmtl.site'];
         const isSpecialApp = specialApps.some(appUrl => url.includes(appUrl));
 
@@ -70,14 +80,19 @@ function setupHomePage() {
     // 6. Gán sự kiện (chỉ một lần để tránh lặp)
     if (!window.homePageListenersAttached) {
         gridLinks.forEach(link => {
-            link.addEventListener('click', (e) => handleLinkClick(e, link.getAttribute('href')));
+            link.addEventListener('click', handleLinkClick);
         });
         
         dropdownLinks.forEach(link => {
             if (link.id !== 'back-to-grid-btn') {
                 link.addEventListener('click', (e) => {
-                    handleLinkClick(e, link.getAttribute('href'));
-                    if (dropdownMenu) dropdownMenu.classList.add('hidden');
+                    // Vẫn gọi handleLinkClick, nó sẽ tự kiểm tra target="_blank"
+                    handleLinkClick(e); 
+                    
+                    // Chỉ đóng dropdown nếu link không mở tab mới
+                    if (e.currentTarget.getAttribute('target') !== '_blank') {
+                        if (dropdownMenu) dropdownMenu.classList.add('hidden');
+                    }
                 });
             }
         });

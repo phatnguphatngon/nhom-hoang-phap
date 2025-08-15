@@ -1,0 +1,21 @@
+{
+  "short_name": "Nhóm Hoằng Pháp",
+  "name": "Nhóm Hoằng Pháp",
+  "icons": [
+    {
+      "src": "logo-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "logo-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/index.html",
+  "display": "standalone",
+  "theme_color": "#f59e0b",
+  "background_color": "#f8fafc",
+  "description": "Khai mở trí tuệ, tìm về an lạc tự tại qua lời dạy của Sư Phụ Lư Đài Trưởng và lòng từ bi của Quán Thế Âm Bồ Tát."
+}
